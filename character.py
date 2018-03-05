@@ -2,16 +2,20 @@ import libtcodpy as tcod
 
 
 class Character:
-    def __init__(self, x, y, char, color):
+    def __init__(self, map, x, y, char, color):
+        self.map = map
         self.x = x
         self.y = y
         self.char = char
         self.color = color
 
     def move(self, dx, dy):
-        self.x += dx
-        self.y += dy
-        print('player position', self.x, self.y)
+        print('move')
+        x, y = self.x + dx, self.y + dy
+        tile = self.map[x][y]
+        if not tile.is_blocked() and not tile.is_occupied():
+            self.x, self.y = [x, y]
+            print('New player position', self.x, self.y)
 
     def draw(self, console):
         tcod.console_set_default_foreground(console, self.color)
