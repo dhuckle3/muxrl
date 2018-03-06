@@ -5,9 +5,12 @@ from dungeon_view import DungeonView
 
 class Main:
     def __init__(self):
-        dungeon = Dungeon(11, 11)
-        view = DungeonView(5, 5, 7, 7, dungeon)
-        self.views = [view]
+        self.views = []
+        self.views.append(DungeonView(3, 3, 13, 13, Dungeon(11, 11), 1))
+        self.views.append(DungeonView(15, 3, 13, 13, Dungeon(11, 11), 2))
+        self.views.append(DungeonView(27, 3, 13, 13, Dungeon(11, 11), 3))
+        self.views.append(DungeonView(39, 3, 13, 13, Dungeon(11, 11), 4))
+
         self.viewport_width = 80
         self.viewport_height = 50
         tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
@@ -45,9 +48,9 @@ class Main:
             view.clear(self.console)
 
     def draw(self):
-        view_count = len(self.views)
-        if view_count is 1:
-            self.views[0].draw(self.console)
+        tcod.console_set_char_foreground(self.console, 1, 1, tcod.white)
+        for view in self.views:
+            view.draw(self.console)
 
 
 if __name__ == "__main__":

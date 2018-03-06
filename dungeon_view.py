@@ -2,17 +2,32 @@ import libtcodpy as tcod
 
 
 class DungeonView:
-    def __init__(self, x_start, y_start, width, height, dungeon):
+    def __init__(self, x_start, y_start, width, height, dungeon, num):
         self.x_start = x_start
         self.y_start = y_start
         self.view_width = width
         self.view_height = height
         self.dungeon = dungeon
+        self.number = num
+
+    def draw_border(self, console):
+        for x in range(self.view_width):
+            self.draw_background(console, x + self.x_start, self.y_start, tcod.light_grey)
+            self.draw_background(console, x + self.x_start, self.y_start + self.view_height - 1, tcod.light_grey)
+        for y in range(1, self.view_height):
+            self.draw_background(console, self.x_start, y + self.y_start, tcod.light_grey)
+            self.draw_background(console, self.x_start + self.view_width - 1, y + self.y_start, tcod.light_grey)
+        numx = self.x_start + self.view_width//2
+        numy = self.y_start + self.view_height - 1
+        # tcod.console_put_char_ex(console, numx, numy, str(self.number), tcod.white, tcod.black)
+        self.draw_background(console, self.x_start + self.view_width // 2, self.y_start + self.view_height - 1, tcod.black)
+        self.draw_char(console, str(self.number), tcod.white, self.x_start + self.view_width // 2, self.y_start + self.view_height - 1)
 
     def draw(self, console):
+        self.draw_border(console)
         [x_center, y_center] = self.dungeon.get_display_center()
-        for x in range(self.view_width):
-            for y in range(self.view_height):
+        for x in range(1, self.view_width - 1):
+            for y in range(1, self.view_height -1):
                 dungeon_x = x_center - (self.view_width // 2) + x
                 dungeon_y = y_center - (self.view_height // 2) + y
                 if self.dungeon.in_bounds(dungeon_x, dungeon_y):
@@ -26,6 +41,10 @@ class DungeonView:
         for x in range(self.x_start, self.x_start + self.view_width):
             for y in range(self.y_start, self.y_start + self.view_height):
                 self.draw_char(console, ' ', tcod.black, x, y)
+
+    @staticmethod
+    def draw_background(console, x, y, color):
+        tcod.console_set_char_background(console, x, y, color)
 
     @staticmethod
     def draw_char(console, char, color, x, y):
