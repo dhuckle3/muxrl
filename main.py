@@ -17,7 +17,7 @@ class Main:
         tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
         tcod.console_init_root(self.viewport_width, self.viewport_height, 'muxRL', False)
         self.console = tcod.console_new(self.viewport_width, self.viewport_height)
-        self.selected_player = None
+        self.select_all_views()
 
     def handle_keys(self, key):
         if key.vk == tcod.KEY_ENTER and key.lalt:
@@ -43,14 +43,24 @@ class Main:
         elif key.vk == tcod.KEY_CONTROL and key.c == ord('a'):
             self.control_active = True
         elif key.c == ord('a'):
-            self.selected_player = None
-            print('selecting all')
+            self.select_all_views()
         elif key.c >= ord('1') and key.c <= ord('9'):
             self.control_active = False
+            for view in self.views:
+                view.set_selected(False)
             index = int(chr(key.c)) - 1
             if index in range(len(self.views)):
                 print('selecting', index)
-                self.selected_player = self.views[index].dungeon.player
+                self.select_dungeon_view(self.views[index])
+
+    def select_all_views(self):
+        self.selected_player = None
+        for view in self.views:
+            view.set_selected(True)
+
+    def select_dungeon_view(self, view):
+        self.selected_player = view.dungeon.player;
+        view.set_selected(True)
 
     def move_player(self, x, y):
         if self.selected_player is None:
@@ -102,7 +112,11 @@ class Main:
     def draw(self):
         tcod.console_set_char_foreground(self.console, 1, 1, tcod.white)
         for view in self.views:
-            view.draw(self.console)
+            if not view.selected:
+                view.draw(self.console)
+        for view in self.views:
+            if view.selected:
+                view.draw(self.console)
 
 
 if __name__ == "__main__":

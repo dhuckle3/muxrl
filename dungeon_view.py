@@ -9,14 +9,23 @@ class DungeonView:
         self.view_height = height
         self.dungeon = dungeon
         self.number = num
+        self.selected = False
+
+    def set_selected(self, selected):
+        self.selected = selected
+
+    def border_color(self):
+        if self.selected:
+            return tcod.dark_green
+        return tcod.light_grey
 
     def draw_border(self, console):
         for x in range(self.view_width):
-            self.draw_background(console, x + self.x_start, self.y_start, tcod.light_grey)
-            self.draw_background(console, x + self.x_start, self.y_start + self.view_height - 1, tcod.light_grey)
+            self.draw_background(console, x + self.x_start, self.y_start, self.border_color())
+            self.draw_background(console, x + self.x_start, self.y_start + self.view_height - 1, self.border_color())
         for y in range(1, self.view_height):
-            self.draw_background(console, self.x_start, y + self.y_start, tcod.light_grey)
-            self.draw_background(console, self.x_start + self.view_width - 1, y + self.y_start, tcod.light_grey)
+            self.draw_background(console, self.x_start, y + self.y_start, self.border_color())
+            self.draw_background(console, self.x_start + self.view_width - 1, y + self.y_start, self.border_color())
         numx = self.x_start + self.view_width//2
         numy = self.y_start + self.view_height - 1
         # tcod.console_put_char_ex(console, numx, numy, str(self.number), tcod.white, tcod.black)
