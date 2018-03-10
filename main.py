@@ -5,18 +5,17 @@ from dungeon_view import DungeonView
 
 class Main:
     def __init__(self):
-
         self.control_active = False
         self.views = []
-        self.views.append(DungeonView(3, 3, 13, 13, Dungeon(11, 11), 1))
-        self.views.append(DungeonView(15, 3, 13, 13, Dungeon(11, 11), 2))
-        self.views.append(DungeonView(27, 3, 13, 13, Dungeon(11, 11), 3))
-        self.views.append(DungeonView(39, 3, 13, 13, Dungeon(11, 11), 4))
+        self.max_rows = 3
         self.viewport_width = 80
-        self.viewport_height = 50
+        self.viewport_height = 60
         tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
-        tcod.console_init_root(self.viewport_width, self.viewport_height, 'muxRL', False)
+        tcod.console_init_root(self.viewport_width, self.viewport_height, 'muxrl', False)
         self.console = tcod.console_new(self.viewport_width, self.viewport_height)
+        self.add_dungeon_view()
+        self.selected_player = None
+        self.update_views()
         self.select_all_views()
 
     def handle_keys(self, key):
@@ -40,11 +39,12 @@ class Main:
             self.move_west()
         elif key.vk == tcod.KEY_KP7:
             self.move_northwest()
-        elif key.vk == tcod.KEY_CONTROL and key.c == ord('a'):
-            self.control_active = True
-        elif key.c == ord('a'):
+        elif key.c == ord('a') and self.control_active:
             self.select_all_views()
-        elif key.c >= ord('1') and key.c <= ord('9'):
+        elif tcod.console_is_key_pressed(tcod.KEY_CONTROL) and key.c == ord('a'):
+            self.control_active = True
+            print('active')
+        elif key.c >= ord('1') and key.c <= ord('9') and self.control_active:
             self.control_active = False
             for view in self.views:
                 view.set_selected(False)
@@ -52,6 +52,38 @@ class Main:
             if index in range(len(self.views)):
                 print('selecting', index)
                 self.select_dungeon_view(self.views[index])
+        elif key.c == ord('d'):
+            #todo remove this later
+            self.add_dungeon_view()
+
+    def update_views(self):
+        view_count = len(self.views)
+        print(view_count)
+        width = self.viewport_width
+        height = self.viewport_height
+        rows = (view_count - 1) // self.max_rows + 1
+        view_height = height // rows
+        for row in range(rows):
+            row_views = len(self.views) - (row * self.max_rows)
+            if row_views > self.max_rows:
+                row_views = self.max_rows
+            view_width = width // row_views
+            x_off = (width - view_width * row_views) // 2
+            print('row', row, 'has', row_views, 'views')
+            for column in range(row_views):
+                index = row * self.max_rows + column
+                x0 = x_off + view_width * column
+                y0 = view_height * row
+                x1 = x0 + view_width
+                y1 = y0 + view_height
+                print('dungeon view', index)
+                self.views[index].set_position(x0, y0, x1, y1)
+
+    def add_dungeon_view(self):
+        view = DungeonView(3, 3, 13, 13, Dungeon(40, 31), self.console)
+        view.set_selected(True)
+        self.views.append(view)
+        self.update_views()
 
     def select_all_views(self):
         self.selected_player = None
@@ -59,7 +91,7 @@ class Main:
             view.set_selected(True)
 
     def select_dungeon_view(self, view):
-        self.selected_player = view.dungeon.player;
+        self.selected_player = view.dungeon.player
         view.set_selected(True)
 
     def move_player(self, x, y):
@@ -94,29 +126,28 @@ class Main:
     def move_northwest(self):
         self.move_player(-1, -1)
 
+    def blit_flush(self):
+        tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
+        tcod.console_flush()
+
     def run(self):
         while not tcod.console_is_window_closed():
             self.draw()
-            tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
-            tcod.console_flush()
+
             key = tcod.console_wait_for_keypress(True)
-            self.clear()
             exit_requested = self.handle_keys(key)
             if exit_requested:
                 break
 
-    def clear(self):
-        for view in self.views:
-            view.clear(self.console)
-
     def draw(self):
-        tcod.console_set_char_foreground(self.console, 1, 1, tcod.white)
-        for view in self.views:
-            if not view.selected:
-                view.draw(self.console)
-        for view in self.views:
-            if view.selected:
-                view.draw(self.console)
+        for c, view in enumerate(self.views):
+            if not view.selected and c + 1:
+                view.draw(self.console, c + 1)
+        for c, view in enumerate(self.views):
+            if view.selected and c + 1:
+                view.draw(self.console, c + 1)
+        tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
+        tcod.console_flush()
 
 
 if __name__ == "__main__":
