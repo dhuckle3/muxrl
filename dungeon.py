@@ -33,7 +33,7 @@ class Dungeon:
 
     @staticmethod
     def make_map(width, height):
-        result = [[Tile(x, y, '.', False, False, tcod.grey) for y in range(width)] for x in range(width)]
+        result = [[Tile(x, y, '.', False, False, tcod.grey) for y in range(height)] for x in range(width)]
         for x in range(width):
             result[x][0] = Tile(x, 0, '#', True, True, tcod.white)
             result[x][height - 1] = Tile(x, height-1, '#', True, True, tcod.white)
