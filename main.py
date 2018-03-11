@@ -97,8 +97,8 @@ class Main:
     def draw_instructions(self):
         self.clear_screen()
         self.draw_centered_text(3, tcod.green, 'muxRL')
-        self.draw_text(3, 5, tcod.white, 'Descend to the fourth floor, collect \'%\' forks to split the dungeon.')
-        self.draw_text(3, 6, tcod.white, 'Control one or all of the consoles at once. Characters die when touched.')
+        self.draw_text(3, 5, tcod.white, 'Descend to the fourth dungeon floor, collect \'%\'s to generate new dungeons.')
+        self.draw_text(3, 6, tcod.white, 'Control one or all of the consoles at once.')
         self.draw_centered_text(9, tcod.light_grey, 'Controls:')
         self.draw_text(5, 10, tcod.light_grey, 'Movement')
         self.draw_text(5, 11, tcod.light_grey, 'y k u    7 8 9  ')
