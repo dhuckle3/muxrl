@@ -5,7 +5,8 @@ from dungeon_view import DungeonView
 
 class Main:
     def __init__(self):
-        self.is_game_running = True
+        self.level = 1
+        self.is_game_running = False
         self.player_moved = False
         self.control_active = False
         self.views = []
@@ -15,7 +16,7 @@ class Main:
         tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
         tcod.console_init_root(self.viewport_width, self.viewport_height, 'muxRL', False)
         self.console = tcod.console_new(self.viewport_width, self.viewport_height)
-        self.add_dungeon_view()
+        self.add_dungeon_view(0)
         self.update_views()
         self.select_all_views()
 
@@ -25,6 +26,9 @@ class Main:
         elif key.vk == tcod.KEY_ESCAPE:
             return True
 
+        if self.level == 4:
+            self.is_game_running = False
+            self.game_victory()
         if self.is_game_running:
             if key.vk == tcod.KEY_UP or tcod.console_is_key_pressed(tcod.KEY_KP8) or key.c == ord('k'):
                 self.move_north()
@@ -55,7 +59,7 @@ class Main:
                     self.views[index].set_selected(True)
             elif key.c == ord('d'):
                 if len(self.views) < 9:
-                    self.add_dungeon_view()
+                    self.add_dungeon_view(len(self.views))
             if self.player_moved:
                 for view in self.views:
                     view.dungeon.move_enemies()
@@ -66,12 +70,50 @@ class Main:
 
             if len(self.views) == 0:
                 self.is_game_running = False
-                self.display_end_game()
+                self.game_over()
                 print('game over')
 
-    def display_end_game(self):
+            for v in self.views:
+                if v.dungeon.advance_level():
+                    self.level += 1
+                    self.reset_views()
+                    break
+        self.is_game_running = True
+
+    def reset_views(self):
+        new_view_count = len(self.views)
+        extra_enemies = self.level - 1 * 5 // new_view_count
+        self.views = []
+        for i in range(new_view_count):
+            self.add_dungeon_view(extra_enemies)
+
+    def draw_start(self):
         self.clear_screen()
-        self.draw_text('game over', self.viewport_width // 2 - 5, self.viewport_height // 2 - 5)
+
+    def draw_instructions(self):
+        self.clear_screen()
+        self.draw_centered_text(3, tcod.green, 'muxRL')
+        self.draw_text(3, 5, tcod.white, 'Descend to the fourth floor, collect \'%\' forks to split the dungeon.')
+        self.draw_text(3, 6, tcod.white, 'Control one or all of the consoles at once. Characters die when touched.')
+        self.draw_centered_text(9, tcod.light_grey, 'Controls:')
+        self.draw_text(5, 10, tcod.light_grey, 'Movement')
+        self.draw_text(5, 11, tcod.light_grey, 'y k u    7 8 9  ')
+        self.draw_text(5, 12, tcod.light_grey, ' \|/      \|/   ')
+        self.draw_text(5, 13, tcod.light_grey, 'h-+-l    4-5-6  ')
+        self.draw_text(5, 14, tcod.light_grey, ' /|\      /|\\  ')
+        self.draw_text(5, 15, tcod.light_grey, 'b j n    1 2 3  ')
+        self.draw_text(5, 19, tcod.light_grey, 'CTRL+A + NUMBER - control only the specified console')
+        self.draw_text(5, 20, tcod.light_grey, 'CTRL+A + A - grab control of all console')
+        self.draw_centered_text(25, tcod.light_yellow, 'Press any key to continue')
+
+    def game_victory(self):
+        self.draw_text(self.viewport_width // 2 - 3, self.viewport_height // 2 - 3, tcod.yellow, 'victory')
+        tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
+        tcod.console_flush()
+
+    def game_over(self):
+        self.clear_screen()
+        self.draw_text(self.viewport_width // 2 - 5, self.viewport_height // 2 - 5, tcod.red, 'game over')
         tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
         tcod.console_flush()
 
@@ -95,8 +137,9 @@ class Main:
                 y1 = y0 + view_height
                 self.views[index].set_position(x0, y0, x1, y1)
 
-    def add_dungeon_view(self):
-        view = DungeonView(self.console, Dungeon(40, 30))
+    def add_dungeon_view(self, extra_enemies):
+        view = DungeonView(self.console, Dungeon(40, 30, extra_enemies))
+        view.dungeon.add_enemies(self.level * 3)
         view.set_selected(True)
         self.views.append(view)
         self.update_views()
@@ -147,9 +190,13 @@ class Main:
             if exit_requested:
                 break
 
-    def draw_text(self, string, x, y):
+    def draw_centered_text(self, y, color, string):
+        x = self.viewport_width // 2 - len(string) // 2
+        self.draw_text(x, y, color, string)
+
+    def draw_text(self, x, y, color, string):
         for i in range(len(string)):
-            tcod.console_set_default_foreground(self.console, tcod.red)
+            tcod.console_set_default_foreground(self.console, color)
             tcod.console_put_char(self.console, x + i, y, string[i], tcod.BKGND_NONE)
 
     def clear_screen(self):
@@ -159,16 +206,19 @@ class Main:
                 tcod.console_put_char(self.console, x, y, ' ', tcod.BKGND_NONE)
                 tcod.console_set_char_background(self.console, x, y, tcod.black)
 
-
     def draw(self):
-        for c, view in enumerate(self.views):
-            if not view.selected:
-                view.draw(self.console, c + 1)
-        for c, view in enumerate(self.views):
-            if view.selected:
-                view.draw(self.console, c + 1)
+        if not self.is_game_running:
+            self.draw_instructions()
+        else:
+            for c, view in enumerate(self.views):
+                if not view.selected:
+                    view.draw(self.console, c + 1)
+            for c, view in enumerate(self.views):
+                if view.selected:
+                    view.draw(self.console, c + 1)
         tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
         tcod.console_flush()
+
 
 if __name__ == "__main__":
     main = Main()

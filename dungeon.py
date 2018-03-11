@@ -6,10 +6,11 @@ from character import Character
 
 
 class Dungeon:
-    def __init__(self, width, height):
+    def __init__(self, width, height, extra_enemies):
         self.rooms = []
         self.map = self.make_map(width, height)
         self.generate_dungeon()
+        self.add_enemies(extra_enemies)
 
 
     @staticmethod
@@ -69,11 +70,11 @@ class Dungeon:
             for y in range(y0, y0 + height):
                 self.map[x][y] = Tile('.', False, tcod.white)
         for x in range(x0, x0 + width):
-            self.map[x][y0] = Tile('#', True, tcod.white)
-            self.map[x][y0 + height - 1] = Tile('#', True, tcod.white)
+            self.map[x][y0] = Tile('#', True, tcod.dark_gray)
+            self.map[x][y0 + height - 1] = Tile('#', True, tcod.dark_gray)
         for y in range(y0, y0 + height):
-            self.map[x0][y] = Tile('#', True, tcod.white)
-            self.map[x0 + width - 1][y] = Tile('#', True, tcod.white)
+            self.map[x0][y] = Tile('#', True, tcod.dark_gray)
+            self.map[x0 + width - 1][y] = Tile('#', True, tcod.dark_gray)
 
     def create_rect(self):
         max_size = 10
@@ -117,8 +118,24 @@ class Dungeon:
                 if room_count > 0:
                     self.build_tunnel(self.rooms[room_count-1], new_rect)
         [x, y] = self.rooms[0].center()
+        self.add_exit()
+        self.map[x][y] = Tile('<', False, tcod.yellow)
         self.map[x][y].add_character(Character(self, '@', tcod.white))
-        self.add_enemies(10)
+        # self.add_enemies(3)
+
+    def add_exit(self):
+        room_num = tcod.random_get_int(0, 0, len(self.rooms))
+        room = self.rooms[room_num-1]
+        placed = False
+        tries = 0
+        while not placed and tries < 10:
+                tries += 1
+                x = tcod.random_get_int(0, room.x1 + 2, room.x2 -1)
+                y = tcod.random_get_int(0, room.y1 + 2, room.y2 -1)
+                tile =self.map[x][y]
+                if not tile.is_occupied() and not tile.is_blocked():
+                    self.map[x][y] = Tile('>', False, tcod.yellow)
+                    placed = True
 
     def add_enemies(self, enemy_count):
         for i in range(enemy_count):
@@ -147,16 +164,14 @@ class Dungeon:
                 old_tile.character = None
 
     def create_h_tunnel(self, x0, x1, y):
-        print(x0, x1, y)
         for x in range(min(x0, x1), max(x0, x1) + 1):
-            self.map[x][y] = Tile('-', False, tcod.light_amber)
+            self.map[x][y] = Tile('-', False, tcod.white)
 
     def create_v_tunnel(self, y0, y1, x):
         for y in range(min(y0, y1), max(y0, y1) + 1):
-            self.map[x][y] = Tile('|', False, tcod.light_amber)
+            self.map[x][y] = Tile('|', False, tcod.white)
 
     def distance_to(self, c1, c2):
-        print(c1, c2)
         dx = c1[0] - c2[0]
         dy = c1[1] - c2[1]
         return math.sqrt(dx ** 2 + dy ** 2)
@@ -172,7 +187,10 @@ class Dungeon:
                         dy = tcod.random_get_int(0, -1, 1)
                         self.move_character(v[0], v[1], dx, dy)
                     else:
-                        # move towards player
                         dx = sorted((-1, player_x - v[0], 1))[1]
                         dy = sorted((-1, player_y - v[1], 1))[1]
                         self.move_character(v[0], v[1], dx, dy)
+
+    def advance_level(self):
+        [x, y] = self.get_display_center()
+        return self.map[x][y].char == '>'

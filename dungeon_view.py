@@ -56,6 +56,8 @@ class DungeonView:
     def clear(self, console):
         for x in range(self.x0, self.x0 + self.view_width):
             for y in range(self.y0, self.y0 + self.view_height):
+                tcod.console_set_default_foreground(console, tcod.black)
+                tcod.console_put_char(console, x, y, ' ', tcod.BKGND_NONE)
                 self.draw_background(console, x, y, self.background_color())
 
     @staticmethod
