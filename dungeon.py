@@ -6,8 +6,10 @@ from character import Character
 
 class Dungeon:
     def __init__(self, width, height):
+        self.rooms = []
         self.map = self.make_map(width, height)
         self.generate_dungeon()
+
 
     @staticmethod
     def make_map(width, height):
@@ -92,22 +94,37 @@ class Dungeon:
 
     def generate_dungeon(self):
         max_rooms = 30
-        rooms = []
         for r in range(max_rooms):
             new_rect = self.create_rect()
             failed = False
-            for room in rooms:
+            for room in self.rooms:
                 if new_rect.intersect(room) and self.intersect(new_rect):
                     failed = True
                     break
             if not failed:
-                room_count = len(rooms)
-                rooms.append(new_rect)
+                room_count = len(self.rooms)
+                self.rooms.append(new_rect)
                 self.create_room(new_rect.x1, new_rect.y1, new_rect.x2 - new_rect.x1, new_rect.y2 - new_rect.y1)
                 if room_count > 0:
-                    self.build_tunnel( rooms[room_count-1], new_rect)
-        [x, y] = rooms[0].center()
+                    self.build_tunnel(self.rooms[room_count-1], new_rect)
+        [x, y] = self.rooms[0].center()
         self.map[x][y].add_character(Character(self, '@', tcod.white))
+        self.add_enemies(10)
+
+    def add_enemies(self, enemy_count):
+        for i in range(enemy_count):
+            room_num = tcod.random_get_int(0, 0, len(self.rooms))
+            room = self.rooms[room_num-1]
+            placed = False
+            tries = 0
+            while not placed and tries < 10:
+                tries += 1
+                x = tcod.random_get_int(0, room.x1 + 1, room.x2)
+                y = tcod.random_get_int(0, room.y1 + 1, room.y2)
+                tile = self.map[x][y]
+                if not tile.is_occupied() and not tile.is_blocked():
+                    tile.add_character(Character(self, 'g', tcod.dark_green))
+                    placed = True
 
     def move_character(self, x, y, dx, dy):
         new_x, new_y = x + dx, y + dy
