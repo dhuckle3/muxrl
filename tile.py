@@ -5,6 +5,7 @@ class Tile:
         # self.block_sight = block_sight
         self.color = color
         self.character = None
+        self.item = None
 
     def is_blocked(self):
         return self.blocked
@@ -15,6 +16,8 @@ class Tile:
     def draw_info(self):
         if self.is_occupied():
             return self.character.draw_info()
+        elif self.item is not None:
+            return self.item.draw_info()
         else:
             return self.color, self.char
 
@@ -22,6 +25,9 @@ class Tile:
         if self.is_occupied():
             return False
         self.character = character
+
+    def add_item(self, item):
+        self.item = item
 
     def has_player(self):
         if self.is_occupied():

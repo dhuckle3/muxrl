@@ -1,5 +1,6 @@
 import math
 import libtcodpy as tcod
+from items.fork import Fork
 from rect import Rect
 from tile import Tile
 from character import Character
@@ -121,7 +122,21 @@ class Dungeon:
         self.add_exit()
         self.map[x][y] = Tile('<', False, tcod.yellow)
         self.map[x][y].add_character(Character(self, '@', tcod.white))
-        # self.add_enemies(3)
+        self.add_fork()
+
+    def add_fork(self):
+        room_num = tcod.random_get_int(0, 0, len(self.rooms))
+        room = self.rooms[room_num-1]
+        placed = False
+        tries = 0
+        while not placed and tries < 10:
+                tries += 1
+                x = tcod.random_get_int(0, room.x1 + 2, room.x2 -1)
+                y = tcod.random_get_int(0, room.y1 + 2, room.y2 -1)
+                tile = self.map[x][y]
+                if not tile.is_occupied() and not tile.is_blocked():
+                    self.map[x][y].add_item(Fork())
+                    placed = True
 
     def add_exit(self):
         room_num = tcod.random_get_int(0, 0, len(self.rooms))
@@ -194,3 +209,11 @@ class Dungeon:
     def advance_level(self):
         [x, y] = self.get_display_center()
         return self.map[x][y].char == '>'
+
+    def check_fork(self):
+        [x, y] = self.get_display_center()
+        tile = self.map[x][y]
+        if tile.item is not None:
+            tile.item = None
+            return True
+        return False

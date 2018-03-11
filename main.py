@@ -17,6 +17,7 @@ class Main:
         tcod.console_init_root(self.viewport_width, self.viewport_height, 'muxRL', False)
         self.console = tcod.console_new(self.viewport_width, self.viewport_height)
         self.add_dungeon_view(0)
+        self.add_dungeon_view(0)
         self.update_views()
         self.select_all_views()
 
@@ -57,15 +58,17 @@ class Main:
                 index = int(chr(key.c)) - 1
                 if index in range(len(self.views)):
                     self.views[index].set_selected(True)
-            elif key.c == ord('d'):
-                if len(self.views) < 9:
-                    self.add_dungeon_view(len(self.views))
+            # elif key.c == ord('d'):
+            #     if len(self.views) < 9:
+            #         self.add_dungeon_view(len(self.views))
             if self.player_moved:
                 for view in self.views:
                     view.dungeon.move_enemies()
+                    self.player_moved = False
             view_count = len(self.views)
             self.views = list(filter(lambda v: v.is_player_alive(), self.views))
             if 0 < len(self.views) < view_count:
+                self.clear_screen()
                 self.update_views()
 
             if len(self.views) == 0:
@@ -78,17 +81,18 @@ class Main:
                     self.level += 1
                     self.reset_views()
                     break
+            for v in self.views:
+                if v.dungeon.check_fork():
+                    self.add_dungeon_view(0)
         self.is_game_running = True
 
     def reset_views(self):
+        self.clear_screen()
         new_view_count = len(self.views)
         extra_enemies = self.level - 1 * 5 // new_view_count
         self.views = []
         for i in range(new_view_count):
             self.add_dungeon_view(extra_enemies)
-
-    def draw_start(self):
-        self.clear_screen()
 
     def draw_instructions(self):
         self.clear_screen()
@@ -138,11 +142,13 @@ class Main:
                 self.views[index].set_position(x0, y0, x1, y1)
 
     def add_dungeon_view(self, extra_enemies):
-        view = DungeonView(self.console, Dungeon(40, 30, extra_enemies))
-        view.dungeon.add_enemies(self.level * 3)
-        view.set_selected(True)
-        self.views.append(view)
-        self.update_views()
+        if len(self.views) < 9:
+            view = DungeonView(self.console, Dungeon(40, 30, extra_enemies))
+            view.dungeon.add_enemies(self.level * 3)
+            view.set_selected(True)
+            self.views.append(view)
+            self.clear_screen()
+            self.update_views()
 
     def select_all_views(self):
         for view in self.views:
@@ -207,6 +213,7 @@ class Main:
                 tcod.console_set_char_background(self.console, x, y, tcod.black)
 
     def draw(self):
+        self.clear_screen()
         if not self.is_game_running:
             self.draw_instructions()
         else:
