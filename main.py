@@ -5,6 +5,7 @@ from dungeon_view import DungeonView
 
 class Main:
     def __init__(self):
+        self.player_moved = False
         self.control_active = False
         self.views = []
         self.max_rows = 3
@@ -52,6 +53,17 @@ class Main:
         elif key.c == ord('d'):
             if len(self.views) < 9:
                 self.add_dungeon_view()
+        if self.player_moved:
+            for view in self.views:
+                view.dungeon.move_enemies()
+
+            # remove views where the player is dead
+            self.views = list(filter(lambda v: v.is_player_alive(), self.views))
+
+        if len(self.views) == 0:
+            # handle game over
+            print('game over')
+
 
     def update_views(self):
         view_count = len(self.views)
@@ -87,6 +99,7 @@ class Main:
         view.set_selected(True)
 
     def move_player(self, dx, dy):
+        self.player_moved = True
         for view in self.views:
             if view.selected:
                 [x, y] = view.dungeon.get_display_center()

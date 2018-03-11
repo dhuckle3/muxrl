@@ -1,3 +1,4 @@
+import math
 import libtcodpy as tcod
 from rect import Rect
 from tile import Tile
@@ -15,12 +16,13 @@ class Dungeon:
     def make_map(width, height):
         return [[Tile(' ', True, tcod.grey) for y in range(height)] for x in range(width)]
 
-    def character_dict(self):
+    def enemy_dict(self):
         character_dict = {}
         for x in range(self.width()):
             for y in range(self.height()):
                 character = self.map[x][y].character
-                character_dict[character] = [x, y]
+                if character is not None and not character.is_player():
+                    character_dict[character] = [x, y]
         return character_dict
 
     def get_player(self):
@@ -28,6 +30,13 @@ class Dungeon:
             for y in range(self.height()):
                 if self.map[x][y].has_player():
                     return self.map[x][y].character
+
+    def is_player_alive(self):
+        for x in range(self.width()):
+            for y in range(self.height()):
+                if self.map[x][y].has_player():
+                    return True
+        return False
 
     def get_display_center(self):
         for x in range(self.width()):
@@ -133,6 +142,9 @@ class Dungeon:
         if not new_tile.is_blocked() and not new_tile.is_occupied():
             new_tile.character = old_tile.character
             old_tile.character = None
+        elif new_tile.is_occupied() and (old_tile.character.is_player() or new_tile.character.is_player()):
+                new_tile.character = old_tile.character
+                old_tile.character = None
 
     def create_h_tunnel(self, x0, x1, y):
         print(x0, x1, y)
@@ -143,4 +155,18 @@ class Dungeon:
         for y in range(min(y0, y1), max(y0, y1) + 1):
             self.map[x][y] = Tile('|', False, tcod.light_amber)
 
+    def distance_to(self, c1, c2):
+        print(c1, c2)
+        dx = c1[0] - c2[0]
+        dy = c1[1] - c2[1]
+        return math.sqrt(dx ** 2 + dy ** 2)
 
+    def move_enemies(self):
+        characters = self.enemy_dict()
+        for c, v in characters.items():
+            if not c.is_player():
+                [player_x, player_y] = self.get_display_center()
+                if self.distance_to(v, [player_x, player_y]) > 6:
+                    dx = tcod.random_get_int(0, -1, 1)
+                    dy = tcod.random_get_int(0, -1, 1)
+                    self.move_character(v[0], v[1], dx, dy)

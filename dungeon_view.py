@@ -26,6 +26,9 @@ class DungeonView:
             return tcod.dark_green
         return tcod.light_grey
 
+    def is_player_alive(self):
+        return self.dungeon.is_player_alive()
+
     def draw_border(self, console, number):
         for x in range(self.view_width):
             self.draw_background(console, x + self.x0, self.y0, self.border_color())
