@@ -54,7 +54,6 @@ class DungeonView:
         for x in range(self.x0, self.x0 + self.view_width):
             for y in range(self.y0, self.y0 + self.view_height):
                 self.draw_background(console, x, y, self.background_color())
-                self.draw_char(console, ' ', self.background_color(), x, y)
 
     @staticmethod
     def draw_background(console, x, y, color):

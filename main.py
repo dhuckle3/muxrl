@@ -22,21 +22,21 @@ class Main:
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
         elif key.vk == tcod.KEY_ESCAPE:
             return True
-        if key.vk == tcod.KEY_UP or tcod.console_is_key_pressed(tcod.KEY_KP8):
+        if key.vk == tcod.KEY_UP or tcod.console_is_key_pressed(tcod.KEY_KP8) or key.c == ord('k'):
             self.move_north()
-        elif key.vk == tcod.KEY_KP9:
+        elif key.vk == tcod.KEY_KP9 or key.c == ord('u'):
             self.move_northeast()
-        elif key.vk == tcod.KEY_RIGHT or key.vk == tcod.KEY_KP6:
+        elif key.vk == tcod.KEY_RIGHT or key.vk == tcod.KEY_KP6 or key.c == ord('l'):
             self.move_east()
-        elif key.vk == tcod.KEY_KP3:
+        elif key.vk == tcod.KEY_KP3 or key.c == ord('n'):
             self.move_southeast()
-        elif key.vk == tcod.KEY_DOWN or key.vk == tcod.KEY_KP2:
+        elif key.vk == tcod.KEY_DOWN or key.vk == tcod.KEY_KP2 or key.c == ord('j'):
             self.move_south()
-        elif key.vk == tcod.KEY_KP1:
+        elif key.vk == tcod.KEY_KP1 or key.c == ord('b'):
             self.move_southwest()
-        elif key.vk == tcod.KEY_LEFT or key.vk == tcod.KEY_KP4:
+        elif key.vk == tcod.KEY_LEFT or key.vk == tcod.KEY_KP4 or key.c == ord('h'):
             self.move_west()
-        elif key.vk == tcod.KEY_KP7:
+        elif key.vk == tcod.KEY_KP7 or key.c == ord('y'):
             self.move_northwest()
         elif key.c == ord('a') and self.control_active:
             self.select_all_views()
@@ -48,7 +48,7 @@ class Main:
                 view.set_selected(False)
             index = int(chr(key.c)) - 1
             if index in range(len(self.views)):
-                self.views[index].selected(True)
+                self.views[index].set_selected(True)
         elif key.c == ord('d'):
             if len(self.views) < 9:
                 self.add_dungeon_view()
