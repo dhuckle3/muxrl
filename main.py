@@ -5,6 +5,7 @@ from dungeon_view import DungeonView
 
 class Main:
     def __init__(self):
+        self.is_game_running = True
         self.player_moved = False
         self.control_active = False
         self.views = []
@@ -23,47 +24,56 @@ class Main:
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
         elif key.vk == tcod.KEY_ESCAPE:
             return True
-        if key.vk == tcod.KEY_UP or tcod.console_is_key_pressed(tcod.KEY_KP8) or key.c == ord('k'):
-            self.move_north()
-        elif key.vk == tcod.KEY_KP9 or key.c == ord('u'):
-            self.move_northeast()
-        elif key.vk == tcod.KEY_RIGHT or key.vk == tcod.KEY_KP6 or key.c == ord('l'):
-            self.move_east()
-        elif key.vk == tcod.KEY_KP3 or key.c == ord('n'):
-            self.move_southeast()
-        elif key.vk == tcod.KEY_DOWN or key.vk == tcod.KEY_KP2 or key.c == ord('j'):
-            self.move_south()
-        elif key.vk == tcod.KEY_KP1 or key.c == ord('b'):
-            self.move_southwest()
-        elif key.vk == tcod.KEY_LEFT or key.vk == tcod.KEY_KP4 or key.c == ord('h'):
-            self.move_west()
-        elif key.vk == tcod.KEY_KP7 or key.c == ord('y'):
-            self.move_northwest()
-        elif key.c == ord('a') and self.control_active:
-            self.select_all_views()
-        elif tcod.console_is_key_pressed(tcod.KEY_CONTROL) and key.c == ord('a'):
-            self.control_active = True
-        elif key.c >= ord('1') and key.c <= ord('9') and self.control_active:
-            self.control_active = False
-            for view in self.views:
-                view.set_selected(False)
-            index = int(chr(key.c)) - 1
-            if index in range(len(self.views)):
-                self.views[index].set_selected(True)
-        elif key.c == ord('d'):
-            if len(self.views) < 9:
-                self.add_dungeon_view()
-        if self.player_moved:
-            for view in self.views:
-                view.dungeon.move_enemies()
 
-            # remove views where the player is dead
+        if self.is_game_running:
+            if key.vk == tcod.KEY_UP or tcod.console_is_key_pressed(tcod.KEY_KP8) or key.c == ord('k'):
+                self.move_north()
+            elif key.vk == tcod.KEY_KP9 or key.c == ord('u'):
+                self.move_northeast()
+            elif key.vk == tcod.KEY_RIGHT or key.vk == tcod.KEY_KP6 or key.c == ord('l'):
+                self.move_east()
+            elif key.vk == tcod.KEY_KP3 or key.c == ord('n'):
+                self.move_southeast()
+            elif key.vk == tcod.KEY_DOWN or key.vk == tcod.KEY_KP2 or key.c == ord('j'):
+                self.move_south()
+            elif key.vk == tcod.KEY_KP1 or key.c == ord('b'):
+                self.move_southwest()
+            elif key.vk == tcod.KEY_LEFT or key.vk == tcod.KEY_KP4 or key.c == ord('h'):
+                self.move_west()
+            elif key.vk == tcod.KEY_KP7 or key.c == ord('y'):
+                self.move_northwest()
+            elif key.c == ord('a') and self.control_active:
+                self.select_all_views()
+            elif tcod.console_is_key_pressed(tcod.KEY_CONTROL) and key.c == ord('a'):
+                self.control_active = True
+            elif key.c >= ord('1') and key.c <= ord('9') and self.control_active:
+                self.control_active = False
+                for view in self.views:
+                    view.set_selected(False)
+                index = int(chr(key.c)) - 1
+                if index in range(len(self.views)):
+                    self.views[index].set_selected(True)
+            elif key.c == ord('d'):
+                if len(self.views) < 9:
+                    self.add_dungeon_view()
+            if self.player_moved:
+                for view in self.views:
+                    view.dungeon.move_enemies()
+            view_count = len(self.views)
             self.views = list(filter(lambda v: v.is_player_alive(), self.views))
+            if 0 < len(self.views) < view_count:
+                self.update_views()
 
-        if len(self.views) == 0:
-            # handle game over
-            print('game over')
+            if len(self.views) == 0:
+                self.is_game_running = False
+                self.display_end_game()
+                print('game over')
 
+    def display_end_game(self):
+        self.clear_screen()
+        self.draw_text('game over', self.viewport_width // 2 - 5, self.viewport_height // 2 - 5)
+        tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
+        tcod.console_flush()
 
     def update_views(self):
         view_count = len(self.views)
@@ -137,6 +147,19 @@ class Main:
             if exit_requested:
                 break
 
+    def draw_text(self, string, x, y):
+        for i in range(len(string)):
+            tcod.console_set_default_foreground(self.console, tcod.red)
+            tcod.console_put_char(self.console, x + i, y, string[i], tcod.BKGND_NONE)
+
+    def clear_screen(self):
+        for x in range(self.viewport_width):
+            for y in range(self.viewport_height):
+                tcod.console_set_default_foreground(self.console, tcod.black)
+                tcod.console_put_char(self.console, x, y, ' ', tcod.BKGND_NONE)
+                tcod.console_set_char_background(self.console, x, y, tcod.black)
+
+
     def draw(self):
         for c, view in enumerate(self.views):
             if not view.selected:
@@ -146,7 +169,6 @@ class Main:
                 view.draw(self.console, c + 1)
         tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
         tcod.console_flush()
-
 
 if __name__ == "__main__":
     main = Main()

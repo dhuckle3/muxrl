@@ -162,11 +162,17 @@ class Dungeon:
         return math.sqrt(dx ** 2 + dy ** 2)
 
     def move_enemies(self):
-        characters = self.enemy_dict()
-        for c, v in characters.items():
+        enemies = self.enemy_dict()
+        for c, v in enemies.items():
             if not c.is_player():
-                [player_x, player_y] = self.get_display_center()
-                if self.distance_to(v, [player_x, player_y]) > 6:
-                    dx = tcod.random_get_int(0, -1, 1)
-                    dy = tcod.random_get_int(0, -1, 1)
-                    self.move_character(v[0], v[1], dx, dy)
+                if self.is_player_alive():
+                    [player_x, player_y] = self.get_display_center()
+                    if self.distance_to(v, [player_x, player_y]) > 6:
+                        dx = tcod.random_get_int(0, -1, 1)
+                        dy = tcod.random_get_int(0, -1, 1)
+                        self.move_character(v[0], v[1], dx, dy)
+                    else:
+                        # move towards player
+                        dx = sorted((-1, player_x - v[0], 1))[1]
+                        dy = sorted((-1, player_y - v[1], 1))[1]
+                        self.move_character(v[0], v[1], dx, dy)
