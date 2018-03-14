@@ -1,8 +1,8 @@
 class Tile:
     def __init__(self, char, blocked, color):
         self.char = char
-        self.blocked = blocked
         self.color = color
+        self.blocked = blocked
         self.character = None
         self.item = None
 

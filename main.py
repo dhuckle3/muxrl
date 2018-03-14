@@ -118,14 +118,10 @@ class Main:
     def game_victory(self):
         self.clear_screen()
         self.draw_text(self.viewport_width // 2 - 3, self.viewport_height // 2 - 3, tcod.yellow, 'victory')
-        # tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
-        # tcod.console_flush()
 
     def game_over(self):
         self.clear_screen()
         self.draw_text(self.viewport_width // 2 - 5, self.viewport_height // 2 - 5, tcod.red, 'game over')
-        # tcod.console_blit(self.console, 0, 0, self.viewport_width, self.viewport_height, 0, 0, 0)
-        # tcod.console_flush()
 
     def update_views(self):
         view_count = len(self.views)
@@ -150,7 +146,6 @@ class Main:
     def add_dungeon_view(self, extra_enemies):
         if len(self.views) < 9:
             view = DungeonView(self.console, Dungeon(40, 30, extra_enemies))
-            view.dungeon.add_enemies(self.level * 3)
             view.set_selected(True)
             self.views.append(view)
             self.clear_screen()
