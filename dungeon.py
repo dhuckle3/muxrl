@@ -1,5 +1,5 @@
 import math
-import libtcodpy as tcod
+import tcod
 from tile import Tile
 from character import Character
 from dungeon_generator import DungeonGenerator

@@ -1,4 +1,4 @@
-import libtcodpy as tcod
+import tcod
 
 
 class Fork:

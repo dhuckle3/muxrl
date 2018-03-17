@@ -1,4 +1,4 @@
-import libtcodpy as tcod
+import tcod
 from tile import Tile
 from items.fork import Fork
 from character import Character

@@ -1,4 +1,4 @@
-import libtcodpy as tcod
+import tcod
 from dungeon import Dungeon
 from dungeon_view import DungeonView
 
@@ -14,7 +14,7 @@ class Main:
         self.max_rows = 3
         self.viewport_width = 80
         self.viewport_height = 60
-        tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
+        tcod.console_set_custom_font('data/fonts/prestige12x12_gs_tc.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
         tcod.console_init_root(self.viewport_width, self.viewport_height, 'muxRL', False)
         self.console = tcod.console_new(self.viewport_width, self.viewport_height)
         self.add_dungeon_view(0)
